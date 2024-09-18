@@ -19,4 +19,28 @@ public class Edge implements Comparable<Edge> {
     public int compareTo(Edge o) {
         return 0;
     }
+
+    public Node from(){
+        return from;
+    }
+
+    public Node to(){
+        return to;
+    }
+
+    public Edge getSymmetric(){
+        return null;
+    }
+
+    public boolean isSelfLoop(){
+        return false;
+    }
+
+    public boolean isWeighted(){
+        return false;
+    }
+
+    public int getWeight(){
+        return weight;
+    }
 }
