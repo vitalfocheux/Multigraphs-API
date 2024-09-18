@@ -8,30 +8,43 @@ public class Node implements Comparable<Node>{
     private String name;
     private Graph graph;
 
+    public Node(int id, Graph graph){
+        this(id, "", graph);
+    }
+
+    public Node(int id, String name, Graph graph){
+        this.id = id;
+        this.name = name;
+        this.graph = graph;
+    }
 
     public boolean equals(Object obj) {
+        if(obj instanceof Node){
+            Node n = (Node) obj;
+            return n.id == this.id;
+        }
         return false;
     }
 
     public int hashCode() {
-        return 0;
+        return id;
     }
 
     @Override
     public int compareTo(Node o) {
-        return 0;
+        return this.id - o.id;
     }
 
     public int getId() {
         return id;
     }
 
-    public int getGraph() {
-        return 0;
+    public Graph getGraph() {
+        return graph;
     }
 
-    public int getName() {
-        return 0;
+    public String getName() {
+        return name;
     }
 
     public List<Node> getSuccessors() {

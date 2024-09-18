@@ -1,5 +1,6 @@
 package main.m1graphs2024;
 
+import java.io.*;
 import java.util.*;
 
 public class Graph {
@@ -11,31 +12,80 @@ public class Graph {
     }
 
     public Graph(int ... nodes){
-        //TODO Constructeur decrit avec le Successor Array
         adjEdList = new HashMap<>();
-
+        int i = 1;
+        for(int n : nodes){
+            if(n == 0){
+                if(!adjEdList.containsKey(new Node(i, this))) {
+                    adjEdList.put(new Node(i, this), new ArrayList<>());
+                }
+                i++;
+            }else{
+                if(!adjEdList.containsKey(new Node(i, this))){
+                    adjEdList.put(new Node(i, this), new ArrayList<>());
+                }
+                adjEdList.get(new Node(i, this)).add(new Edge(new Node(i, this), new Node(n, this), this));
+            }
+        }
     }
 
     //TODO Faire un constructeur qui lit un fichier .dot
+    public Graph(String dotFile) {
+        adjEdList = new HashMap<>();
+
+        try(BufferedReader br = new BufferedReader(new FileReader(dotFile))){
+            String line;
+            while((line = br.readLine()) != null){
+                if(line.contains("->")){
+                    String[] nodes = line.split("->");
+                    Node from = new Node(Integer.parseInt(nodes[0].trim()), this);
+                    Node to = new Node(Integer.parseInt(nodes[1].trim()), this);
+                    if(!adjEdList.containsKey(from)){
+                        adjEdList.put(from, new ArrayList<>());
+                    }
+                    adjEdList.get(from).add(new Edge(from, to, this));
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String toString() {
+        String res = "";
+        for(Node n : adjEdList.keySet()){
+            res += n.getId() + " -> ";
+            for(Edge e : adjEdList.get(n)){
+                res += "("+n.getId()+", "+e.to().getId()+"), ";
+            }
+            res += "\n";
+        }
+        return res;
+    }
 
     public int nbNodes(){
-        return 0;
+        return adjEdList.size();
     }
 
     public boolean usesNode(Node n){
-        return false;
+        return adjEdList.get(n) != null;
     }
 
     public boolean holdsNode(Node n){
-        return false;
+        return adjEdList.containsKey(n);
     }
 
     public Node getNode(int id){
-        return null;
+        return adjEdList.keySet().stream().filter(n -> n.getId() == id).findFirst().orElse(null);
     }
 
     public boolean addNode(Node n){
-        return false;
+        if(adjEdList.containsKey(n)){
+            return false;
+        }
+        adjEdList.put(n, new ArrayList<>());
+        return true;
     }
 
     public boolean removeNode(Node n){
@@ -43,15 +93,15 @@ public class Graph {
     }
 
     public List<Node> getAllNodes(){
-        return null;
+        return new ArrayList<>(adjEdList.keySet());
     }
 
     public int largestNodeId(){
-        return 0;
+        return adjEdList.keySet().stream().mapToInt(Node::getId).max().orElse(-1);
     }
 
     public int smallestNodeId(){
-        return 0;
+        return adjEdList.keySet().stream().mapToInt(Node::getId).min().orElse(-1);
     }
 
     public List<Node> getSuccessors(Node n){
@@ -63,7 +113,10 @@ public class Graph {
     }
 
     public boolean adjacent(Node u, Node v){
-        return false;
+        if(!holdsNode(u) || !holdsNode(v)){
+            return false;
+        }
+        return adjEdList.get(u).stream().anyMatch(e -> e.to().equals(v)) || adjEdList.get(v).stream().anyMatch(e -> e.to().equals(u));
     }
 
     public int inDegree(Node n){
@@ -79,19 +132,29 @@ public class Graph {
     }
 
     public int nbEdges(){
-        return 0;
+        return adjEdList.values().stream().mapToInt(List::size).sum();
     }
 
     public boolean existsEdge(Node u, Node v){
-        return false;
+        if(!holdsNode(u) || !holdsNode(v)){
+            return false;
+        }
+        //TODO vérifier la diff entre adjacent et existsEdge
+        return true;
     }
 
-    public void addEdge(Node from, Node to){
-
+    public boolean addEdge(Node from, Node to){
+        if(!holdsNode(from) || !holdsNode(to)){
+            return false;
+        }
+        return adjEdList.get(from).add(new Edge(from, to, this));
     }
 
     public boolean removeEdge(Node from, Node to){
-        return false;
+        if(!holdsNode(from) || !holdsNode(to)){
+            return false;
+        }
+        return adjEdList.get(from).removeIf(e -> e.to().equals(to));
     }
 
     public List<Edge> getOutEdges(Node n){

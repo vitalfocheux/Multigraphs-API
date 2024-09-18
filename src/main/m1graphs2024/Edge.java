@@ -6,18 +6,36 @@ public class Edge implements Comparable<Edge> {
     private Graph graph;
     private int weight;
 
+    public Edge(Node from, Node to, Graph graph){
+        this(from, to, graph, 0);
+    }
+
+    public Edge(Node from, Node to, Graph graph, int weight){
+        this.from = from;
+        this.to = to;
+        this.graph = graph;
+        this.weight = weight;
+    }
+
     public int hashCode() {
         return 0;
     }
 
     public boolean equals(Object obj) {
+        if(obj instanceof Edge){
+            Edge e = (Edge) obj;
+            return e.from.equals(this.from) && e.to.equals(this.to);
+        }
         return false;
     }
 
 
     @Override
     public int compareTo(Edge o) {
-        return 0;
+        if(this.from.equals(o.from)){
+            return this.to.compareTo(o.to);
+        }
+        return this.from.compareTo(o.from);
     }
 
     public Node from(){
