@@ -1,4 +1,4 @@
-package main.m1graphs2024;
+package m1graphs2024;
 
 import java.util.*;
 
@@ -35,6 +35,11 @@ public class Node implements Comparable<Node>{
         return this.id - o.id;
     }
 
+    @Override
+    public String toString() {
+        return ""+getId();
+    }
+
     public int getId() {
         return id;
     }
@@ -48,18 +53,26 @@ public class Node implements Comparable<Node>{
     }
 
     public List<Node> getSuccessors() {
-        return null;
+        return graph.getSuccessors(this);
     }
 
     public List<Node> getSuccessorsMulti(){
-        return null;
+        return graph.getSuccessorsMulti(this);
     }
 
     public boolean adjacent(Node n){
-        return false;
+        return graph.adjacent(this, n);
+    }
+
+    public boolean ajdacent(int id){
+        return graph.adjacent(this, new Node(id, graph));
     }
 
     public int inDegree(Node n){
+        return 0;
+    }
+
+    public int inDegree(int id){
         return 0;
     }
 
@@ -67,16 +80,24 @@ public class Node implements Comparable<Node>{
         return 0;
     }
 
+    public int outDegree(int id){
+        return 0;
+    }
+
     public int degree(Node n){
         return 0;
     }
 
+    public int degree(int id){
+        return 0;
+    }
+
     public List<Edge> getOutEdges(){
-        return null;
+        return graph.getOutEdges(this);
     }
 
     public List<Edge> getInEdges(){
-        return null;
+        return graph.getInEdges(this);
     }
 
     public List<Edge> getIncidentEdges(){
@@ -84,6 +105,10 @@ public class Node implements Comparable<Node>{
     }
 
     public List<Edge> getEdgesTo(Node n){
-        return null;
+        return graph.getEdges(this, n);
+    }
+
+    public List<Edge> getEdgesTo(int id){
+        return graph.getEdges(this, new Node(id, graph));
     }
 }
