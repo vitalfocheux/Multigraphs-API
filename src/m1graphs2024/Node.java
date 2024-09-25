@@ -68,28 +68,17 @@ public class Node implements Comparable<Node>{
         return graph.adjacent(this, new Node(id, graph));
     }
 
-    public int inDegree(Node n){
-        return 0;
+
+    public int inDegree(){
+        return graph.inDegree(this);
     }
 
-    public int inDegree(int id){
-        return 0;
+    public int outDegree(){
+        return graph.outDegree(this);
     }
 
-    public int outDegree(Node n){
-        return 0;
-    }
-
-    public int outDegree(int id){
-        return 0;
-    }
-
-    public int degree(Node n){
-        return 0;
-    }
-
-    public int degree(int id){
-        return 0;
+    public int degree(){
+        return graph.degree(this);
     }
 
     public List<Edge> getOutEdges(){
@@ -101,7 +90,7 @@ public class Node implements Comparable<Node>{
     }
 
     public List<Edge> getIncidentEdges(){
-        return null;
+        return graph.getIncidentEdges(this);
     }
 
     public List<Edge> getEdgesTo(Node n){
