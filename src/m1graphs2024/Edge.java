@@ -1,4 +1,4 @@
-package main.m1graphs2024;
+package m1graphs2024;
 
 public class Edge implements Comparable<Edge> {
 
@@ -15,6 +15,10 @@ public class Edge implements Comparable<Edge> {
         this.to = to;
         this.graph = graph;
         this.weight = weight;
+    }
+
+    public Edge(int from, int to){
+        this(new Node(from, null), new Node(to, null), null, 0);
     }
 
     public int hashCode() {
@@ -38,6 +42,11 @@ public class Edge implements Comparable<Edge> {
         return this.from.compareTo(o.from);
     }
 
+    @Override
+    public String toString() {
+        return from+" -> "+to;
+    }
+
     public Node from(){
         return from;
     }
@@ -47,15 +56,15 @@ public class Edge implements Comparable<Edge> {
     }
 
     public Edge getSymmetric(){
-        return null;
+        return new Edge(to, from, graph, weight);
     }
 
     public boolean isSelfLoop(){
-        return false;
+        return from.equals(to);
     }
 
     public boolean isWeighted(){
-        return false;
+        return weight == (Integer)null;
     }
 
     public int getWeight(){
