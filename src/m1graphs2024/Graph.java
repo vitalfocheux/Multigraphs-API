@@ -1,4 +1,4 @@
-package main.m1graphs2024;
+package m1graphs2024;
 
 import java.io.*;
 import java.util.*;
@@ -64,6 +64,10 @@ public class Graph {
         return res;
     }
 
+    public String toDotString(){
+        return toString();
+    }
+
     public int nbNodes(){
         return adjEdList.size();
     }
@@ -92,6 +96,10 @@ public class Graph {
         return false;
     }
 
+    public boolean removeNode(int n){
+        return false;
+    }
+
     public List<Node> getAllNodes(){
         return new ArrayList<>(adjEdList.keySet());
     }
@@ -105,11 +113,26 @@ public class Graph {
     }
 
     public List<Node> getSuccessors(Node n){
-        return null;
+        List<Node> successors = new ArrayList<>();
+        if(!holdsNode(n)){
+            return successors;
+        }
+        List<Edge> edges = adjEdList.get(n);
+        for(Edge e : edges){
+            if(!successors.contains(e.to())) {
+                successors.add(e.to());
+            }
+        }
+        return successors;
     }
 
     public List<Node> getSuccessorsMulti(Node n){
-        return null;
+        List<Node> successors = new ArrayList<>();
+        if(!holdsNode(n)){
+            return successors;
+        }
+        adjEdList.get(n).forEach(e -> successors.add(e.to()));
+        return successors;
     }
 
     public boolean adjacent(Node u, Node v){
@@ -123,11 +146,23 @@ public class Graph {
         return 0;
     }
 
+    public int inDegree(int n){
+        return 0;
+    }
+
     public int outDegree(Node n){
         return 0;
     }
 
+    public int outDegree(int n){
+        return 0;
+    }
+
     public int degree(Node n){
+        return 0;
+    }
+
+    public int degree(int n){
         return 0;
     }
 
@@ -143,11 +178,24 @@ public class Graph {
         return true;
     }
 
+    public boolean existsEdge(int u, int v){
+        return existsEdge(new Node(u, null), new Node(v, null));
+    }
+
     public boolean addEdge(Node from, Node to){
         if(!holdsNode(from) || !holdsNode(to)){
             return false;
         }
         return adjEdList.get(from).add(new Edge(from, to, this));
+    }
+
+    //TODO voir cette surcharge
+    public boolean addEdge(int from, int to){
+        return addEdge(new Node(from, null), new Node(to, null));
+    }
+
+    public boolean addEdge(Edge e){
+        return addEdge(e.from(), e.to());
     }
 
     public boolean removeEdge(Node from, Node to){
@@ -157,12 +205,31 @@ public class Graph {
         return adjEdList.get(from).removeIf(e -> e.to().equals(to));
     }
 
+    public boolean removeEdge(int from, int to){
+        return removeEdge(new Node(from, null), new Node(to, null));
+    }
+
     public List<Edge> getOutEdges(Node n){
-        return null;
+        List<Edge> outEdges = new ArrayList<>();
+        if(!holdsNode(n)){
+            return outEdges;
+        }
+        return adjEdList.get(n);
     }
 
     public List<Edge> getInEdges(Node n){
-        return null;
+        List<Edge> inEdges = new ArrayList<>();
+        if(!holdsNode(n)){
+            return inEdges;
+        }
+        for(Node node : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(node)){
+                if(e.to().equals(n)){
+                    inEdges.add(e);
+                }
+            }
+        }
+        return inEdges;
     }
 
     public List<Edge> getIncidentEdges(Node n){
@@ -170,11 +237,29 @@ public class Graph {
     }
 
     public List<Edge> getEdges(Node u, Node v){
-        return null;
+        List<Edge> edges = new ArrayList<>();
+        if(!holdsNode(u) || !holdsNode(v)){
+            return edges;
+        }
+        for(Edge e : adjEdList.get(u)){
+            if(e.to().equals(v)){
+                edges.add(e);
+            }
+        }
+        for(Edge e : adjEdList.get(v)){
+            if(e.to().equals(u)){
+                edges.add(e);
+            }
+        }
+        return edges;
     }
 
     public List<Edge> getAllEdges(){
-        return null;
+        List<Edge> edges = new ArrayList<>();
+        for(Node n : adjEdList.keySet()){
+            edges.addAll(adjEdList.get(n));
+        }
+        return edges;
     }
 
 
