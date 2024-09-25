@@ -51,13 +51,25 @@ public class Graph {
         }
     }
 
+    public static Graph fromDotFile(String filename){
+        return new Graph(filename);
+    }
+
+    public static Graph fromDotFile(String filename, String extension){
+        return new Graph(filename + extension);
+    }
+
     @Override
     public String toString() {
         String res = "";
         for(Node n : adjEdList.keySet()){
             res += n.getId() + " -> ";
-            for(Edge e : adjEdList.get(n)){
-                res += "("+n.getId()+", "+e.to().getId()+"), ";
+            int size = adjEdList.get(n).size();
+            for(int i = 0; i < size; i++){
+                res += "("+n.getId()+", "+adjEdList.get(n).get(i).to().getId()+")";
+                if(i < size - 1){
+                    res += ", ";
+                }
             }
             res += "\n";
         }
@@ -80,6 +92,10 @@ public class Graph {
         return adjEdList.containsKey(n);
     }
 
+    public boolean holdsNode(int id){
+        return holdsNode(new Node(id, this));
+    }
+
     public Node getNode(int id){
         return adjEdList.keySet().stream().filter(n -> n.getId() == id).findFirst().orElse(null);
     }
@@ -90,6 +106,10 @@ public class Graph {
         }
         adjEdList.put(n, new ArrayList<>());
         return true;
+    }
+
+    public boolean addNode(int id){
+        return addNode(new Node(id, this));
     }
 
     public boolean removeNode(Node n){
@@ -143,27 +163,42 @@ public class Graph {
     }
 
     public int inDegree(Node n){
-        return 0;
+        int inDegree = 0;
+        if(!holdsNode(n)){
+            return inDegree;
+        }
+        for(Node node : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(node)){
+                if(e.to().equals(n)){
+                    inDegree++;
+                }
+            }
+        }
+        return inDegree;
     }
 
-    public int inDegree(int n){
-        return 0;
+    public int inDegree(int id){
+        return inDegree(new Node(id, this));
     }
 
     public int outDegree(Node n){
-        return 0;
+        int outDegree = 0;
+        if(!holdsNode(n)){
+            return outDegree;
+        }
+        return adjEdList.get(n).size();
     }
 
-    public int outDegree(int n){
-        return 0;
+    public int outDegree(int id){
+        return outDegree(new Node(id, this));
     }
 
     public int degree(Node n){
-        return 0;
+        return inDegree(n) + outDegree(n);
     }
 
-    public int degree(int n){
-        return 0;
+    public int degree(int id){
+        return degree(new Node(id, this));
     }
 
     public int nbEdges(){
@@ -174,12 +209,16 @@ public class Graph {
         if(!holdsNode(u) || !holdsNode(v)){
             return false;
         }
-        //TODO vérifier la diff entre adjacent et existsEdge
-        return true;
+        for(Edge e : adjEdList.get(u)){
+            if(e.to().equals(v)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean existsEdge(int u, int v){
-        return existsEdge(new Node(u, null), new Node(v, null));
+        return existsEdge(new Node(u, this), new Node(v, this));
     }
 
     public boolean addEdge(Node from, Node to){
@@ -189,9 +228,8 @@ public class Graph {
         return adjEdList.get(from).add(new Edge(from, to, this));
     }
 
-    //TODO voir cette surcharge
     public boolean addEdge(int from, int to){
-        return addEdge(new Node(from, null), new Node(to, null));
+        return addEdge(new Node(from, this), new Node(to, this));
     }
 
     public boolean addEdge(Edge e){
@@ -206,7 +244,7 @@ public class Graph {
     }
 
     public boolean removeEdge(int from, int to){
-        return removeEdge(new Node(from, null), new Node(to, null));
+        return removeEdge(new Node(from, this), new Node(to, this));
     }
 
     public List<Edge> getOutEdges(Node n){
@@ -233,7 +271,13 @@ public class Graph {
     }
 
     public List<Edge> getIncidentEdges(Node n){
-        return null;
+        List<Edge> edges = new ArrayList<>();
+        if(!holdsNode(n)){
+            return edges;
+        }
+        edges.addAll(getInEdges(n));
+        edges.addAll(getOutEdges(n));
+        return edges;
     }
 
     public List<Edge> getEdges(Node u, Node v){
@@ -264,11 +308,27 @@ public class Graph {
 
 
     public int[] toSuccessorArray(){
-        return null;
+        int[] succArray = new int[nbNodes()+nbEdges()];
+        int i = 0;
+        for(Node n : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(n)){
+                succArray[i] = e.to().getId();
+                i++;
+            }
+            succArray[i] = 0;
+            i++;
+        }
+        return succArray;
     }
 
     public int[][] toAdjMatrix(){
-        return null;
+        int[][] adjMatrix = new int[nbNodes()][nbNodes()];
+        for(Node n : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(n)){
+                adjMatrix[n.getId()-1][e.to().getId()-1] = 1;
+            }
+        }
+        return adjMatrix;
     }
 
     public Graph getReverse(){
@@ -280,18 +340,132 @@ public class Graph {
     }
 
     public boolean isMultiGraph(){
+        for(Node n : adjEdList.keySet()){
+            List<Edge> edges = adjEdList.get(n);
+            for(int i = 0; i < edges.size(); i++){
+                for(int j = i + 1; j < edges.size(); j++){
+                    if(edges.get(i).to().equals(edges.get(j).to())){
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
-    public boolean hasSelfLoop(){
+    public boolean hasSelfLoops(){
+        for(Node n : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(n)){
+                if(e.isSelfLoop()){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
     public Graph toSimpleGraph(){
-        return null;
+        if(!isMultiGraph() && !hasSelfLoops()){
+            return this;
+        }
+        Graph simpleGraph = new Graph();
+        for(Node n : adjEdList.keySet()){
+            simpleGraph.addNode(n);
+            for(Edge e : adjEdList.get(n)){
+                if(!simpleGraph.existsEdge(e.from(), e.to()) && !e.isSelfLoop()){
+                    simpleGraph.addEdge(e);
+                }
+            }
+        }
+
+        return simpleGraph;
     }
 
     public Graph copy(){
+        Graph copy = new Graph();
+        for(Node n : adjEdList.keySet()){
+            copy.addNode(n);
+            for(Edge e : adjEdList.get(n)){
+                copy.addEdge(e);
+            }
+        }
+        return copy;
+    }
+
+    public List<Node> getDFS() {
+        Node start = new Node(smallestNodeId(), this);
+        return getDFS(start);
+    }
+
+    public List<Node> getDFS(Node n) {
+        List<Node> dfs = new ArrayList<>();
+        return getDFS(n, dfs);
+    }
+
+    public List<Node> getDFS(int id){
+        return getDFS(new Node(id, this));
+    }
+
+    private List<Node> getDFS(Node n, List<Node> dfs){
+        if(!dfs.contains(n)){
+            dfs.add(n);
+            for(Node s : getSuccessors(n)){
+                getDFS(s, dfs);
+            }
+        }
+        if(dfs.size() < nbNodes()){
+            for(Node node : adjEdList.keySet()){
+                if(!dfs.contains(node)){
+                    getDFS(node, dfs);
+                }
+            }
+        }
+        return dfs;
+    }
+
+    public List<Node> getBFS() {
+        Node start = new Node(smallestNodeId(), this);
+        return getBFS(start);
+    }
+
+    public List<Node> getBFS(Node n) {
+        List<Node> bfs = new ArrayList<>();
+        return getBFS(n, bfs);
+    }
+
+    public List<Node> getBFS(int id){
+        return getBFS(new Node(id, this));
+    }
+
+    private List<Node> getBFS(Node n, List<Node> bfs){
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(n);
+        while(!queue.isEmpty()){
+            Node node = queue.poll();
+            if(!bfs.contains(node)){
+                bfs.add(node);
+                for(Node s : getSuccessors(node)){
+                    if(!bfs.contains(s)){
+                        queue.add(s);
+                    }
+                }
+            }
+        }
+        if(bfs.size() < nbNodes()){
+            for(Node node : adjEdList.keySet()){
+                if(!bfs.contains(node)){
+                    getDFS(node, bfs);
+                }
+            }
+        }
+        return bfs;
+    }
+
+    public List<Node> getDFSWithVisitInfo(Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
+        return null;
+    }
+
+    public List<Node> getDFSWithVisitInfo(Node n, Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
         return null;
     }
 }
