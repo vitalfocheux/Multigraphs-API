@@ -4,13 +4,13 @@ public class Edge implements Comparable<Edge> {
 
     private Node from, to;
     private Graph graph;
-    private int weight;
+    private Integer weight;
 
     public Edge(Node from, Node to, Graph graph){
         this(from, to, graph, 0);
     }
 
-    public Edge(Node from, Node to, Graph graph, int weight){
+    public Edge(Node from, Node to, Graph graph, Integer weight){
         this.from = from;
         this.to = to;
         this.graph = graph;
@@ -18,7 +18,7 @@ public class Edge implements Comparable<Edge> {
     }
 
     public Edge(int from, int to){
-        this(new Node(from, null), new Node(to, null), null, 0);
+        this(new Node(from, null), new Node(to, null), null, null);
     }
 
     public int hashCode() {
@@ -64,7 +64,7 @@ public class Edge implements Comparable<Edge> {
     }
 
     public boolean isWeighted(){
-        return weight == (Integer)null;
+        return weight == null;
     }
 
     public int getWeight(){
