@@ -51,14 +51,6 @@ public class Graph {
         }
     }
 
-    public static Graph fromDotFile(String filename){
-        return new Graph(filename);
-    }
-
-    public static Graph fromDotFile(String filename, String extension){
-        return new Graph(filename + extension);
-    }
-
     @Override
     public String toString() {
         String res = "";
@@ -76,6 +68,14 @@ public class Graph {
         return res;
     }
 
+    public static Graph fromDotFile(String filename){
+        return new Graph(filename);
+    }
+
+    public static Graph fromDotFile(String filename, String extension){
+        return new Graph(filename + extension);
+    }
+
     public String toDotString(){
         return toString();
     }
@@ -86,6 +86,10 @@ public class Graph {
 
     public boolean usesNode(Node n){
         return adjEdList.get(n) != null;
+    }
+
+    public boolean usesNode(int id){
+        return usesNode(new Node(id, this));
     }
 
     public boolean holdsNode(Node n){
@@ -112,6 +116,7 @@ public class Graph {
         return addNode(new Node(id, this));
     }
 
+    //TODO faire le removeNode
     public boolean removeNode(Node n){
         return false;
     }
@@ -162,6 +167,10 @@ public class Graph {
         return adjEdList.get(u).stream().anyMatch(e -> e.to().equals(v)) || adjEdList.get(v).stream().anyMatch(e -> e.to().equals(u));
     }
 
+    public boolean adjacent(int u, int v){
+        return adjacent(new Node(u, this), new Node(v, this));
+    }
+
     public int inDegree(Node n){
         int inDegree = 0;
         if(!holdsNode(n)){
@@ -182,9 +191,8 @@ public class Graph {
     }
 
     public int outDegree(Node n){
-        int outDegree = 0;
         if(!holdsNode(n)){
-            return outDegree;
+            return 0;
         }
         return adjEdList.get(n).size();
     }
@@ -462,10 +470,13 @@ public class Graph {
     }
 
     public List<Node> getDFSWithVisitInfo(Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
-        return null;
+        Node start = new Node(smallestNodeId(), this);
+        return getDFSWithVisitInfo(start, nodeVisit, edgeVisit);
     }
 
     public List<Node> getDFSWithVisitInfo(Node n, Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
-        return null;
+        List<Node> dfs = new ArrayList<>();
+
+        return dfs;
     }
 }
