@@ -1,11 +1,15 @@
 package m1graphs2024;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Graph {
 
-    private Map<Node, List<Edge>> adjEdList;
+    protected Map<Node, List<Edge>> adjEdList;
 
     public Graph(){
         adjEdList = new HashMap<>();
@@ -24,7 +28,7 @@ public class Graph {
                 if(!adjEdList.containsKey(new Node(i, this))){
                     adjEdList.put(new Node(i, this), new ArrayList<>());
                 }
-                adjEdList.get(new Node(i, this)).add(new Edge(new Node(i, this), new Node(n, this), this));
+                adjEdList.get(new Node(i, this)).add(new Edge(new Node(i, this), new Node(n, this), this, null));
             }
         }
     }
@@ -69,15 +73,85 @@ public class Graph {
     }
 
     public static Graph fromDotFile(String filename){
-        return new Graph(filename);
+        return Graph.fromDotFile(filename, "gv");
     }
 
     public static Graph fromDotFile(String filename, String extension){
-        return new Graph(filename + extension);
+        Graph g = new Graph();
+
+
+        Path startPath = Paths.get(System.getProperty("user.dir"));
+        String pattern = filename+"."+extension;
+        final String[] src = {""};
+
+        try {
+            Files.walkFileTree(startPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (file.getFileName().toString().equals(pattern)) {
+                        if(!file.toAbsolutePath().toString().contains("out")){
+                            src[0] = file.toAbsolutePath().toString();
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try(BufferedReader br = new BufferedReader(new FileReader(src[0]))){
+            String line;
+            while((line = br.readLine()) != null){
+                if(line.contains("->")){
+                    Integer weight = null;
+                    String[] nodes = line.split("->");
+                    Node from = new Node(Integer.parseInt(nodes[0].trim()), g);
+                    if(nodes[1].contains("[")){
+
+                        Pattern pattern_ = Pattern.compile("label=(\\d+)");
+                        Matcher matcher = pattern_.matcher(nodes[1]);
+                        if(matcher.find()){
+                            weight = Integer.parseInt(matcher.group(1));
+                        }
+                        nodes[1] = nodes[1].substring(0, nodes[1].indexOf("["));
+                    }
+                    Node to = new Node(Integer.parseInt(nodes[1].trim()), g);
+
+                    if(!g.adjEdList.containsKey(from)){
+                        g.adjEdList.put(from, new ArrayList<>());
+                    }
+
+                    Edge e = new Edge(from, to, g, weight);
+                    g.addEdge(e);
+                }else if(!line.contains("digraph") && !line.contains("rankdir") && !line.contains("}")){
+                    g.adjEdList.put(new Node(Integer.parseInt(line.trim()), g), new ArrayList<>());
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return g;
+
+
     }
 
+
     public String toDotString(){
-        return toString();
+        String res = "digraph {\n\trankdir=LR\n";
+        for(Node n : adjEdList.keySet()){
+            if(adjEdList.get(n).isEmpty() && !usesNode(n)){
+                res += "\t"+n.getId()+"\n";
+            }
+            for(Edge e : adjEdList.get(n)){
+                res += "\t"+n.getId()+" -> "+e.to().getId();
+                if(e.isWeighted()){
+                    res += " [label="+e.getWeight()+", len="+e.getWeight()+"]";
+                }
+                res += "\n";
+            }
+        }
+        return res+"}\n";
     }
 
     public int nbNodes(){
@@ -85,7 +159,17 @@ public class Graph {
     }
 
     public boolean usesNode(Node n){
-        return adjEdList.get(n) != null;
+        if(!adjEdList.containsKey(n)){
+            return false;
+        }
+        for(Node node : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(node)){
+                if(e.to().equals(n) || e.from().equals(n)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public boolean usesNode(int id){
@@ -118,11 +202,19 @@ public class Graph {
 
     //TODO faire le removeNode
     public boolean removeNode(Node n){
-        return false;
+        if(!holdsNode(n)){
+            return false;
+        }
+        adjEdList.remove(n);
+        for(Node node : adjEdList.keySet()){
+            adjEdList.get(node).removeIf(e -> e.to().equals(n));
+            adjEdList.get(node).removeIf(e -> e.from().equals(n));
+        }
+        return true;
     }
 
     public boolean removeNode(int n){
-        return false;
+        return removeNode(new Node(n, this));
     }
 
     public List<Node> getAllNodes(){
@@ -151,6 +243,10 @@ public class Graph {
         return successors;
     }
 
+    public List<Node> getSuccessors(int id){
+        return getSuccessors(new Node(id, this));
+    }
+
     public List<Node> getSuccessorsMulti(Node n){
         List<Node> successors = new ArrayList<>();
         if(!holdsNode(n)){
@@ -158,6 +254,10 @@ public class Graph {
         }
         adjEdList.get(n).forEach(e -> successors.add(e.to()));
         return successors;
+    }
+
+    public List<Node> getSuccessorsMulti(int id){
+        return getSuccessorsMulti(new Node(id, this));
     }
 
     public boolean adjacent(Node u, Node v){
@@ -229,19 +329,27 @@ public class Graph {
         return existsEdge(new Node(u, this), new Node(v, this));
     }
 
-    public boolean addEdge(Node from, Node to){
-        if(!holdsNode(from) || !holdsNode(to)){
-            return false;
+    public void addEdge(Node from, Node to){
+        addEdge(from, to, null);
+    }
+
+    public void addEdge(Node from, Node to, Integer weight){
+        if(!holdsNode(from)){
+            addNode(from);
         }
-        return adjEdList.get(from).add(new Edge(from, to, this));
+        if(!holdsNode(to)){
+            addNode(to);
+        }
+        adjEdList.get(from).add(new Edge(from, to, this, weight));
+        Collections.sort(adjEdList.get(from));
     }
 
-    public boolean addEdge(int from, int to){
-        return addEdge(new Node(from, this), new Node(to, this));
+    public void addEdge(int from, int to){
+        addEdge(new Node(from, this), new Node(to, this), null);
     }
 
-    public boolean addEdge(Edge e){
-        return addEdge(e.from(), e.to());
+    public void addEdge(Edge e){
+        addEdge(e.from(), e.to(), e.getWeight());
     }
 
     public boolean removeEdge(Node from, Node to){
@@ -256,9 +364,8 @@ public class Graph {
     }
 
     public List<Edge> getOutEdges(Node n){
-        List<Edge> outEdges = new ArrayList<>();
         if(!holdsNode(n)){
-            return outEdges;
+            return new ArrayList<>();
         }
         return adjEdList.get(n);
     }
@@ -289,10 +396,10 @@ public class Graph {
     }
 
     public List<Edge> getEdges(Node u, Node v){
-        List<Edge> edges = new ArrayList<>();
         if(!holdsNode(u) || !holdsNode(v)){
-            return edges;
+            return new ArrayList<>();
         }
+        List<Edge> edges = new ArrayList<>();
         for(Edge e : adjEdList.get(u)){
             if(e.to().equals(v)){
                 edges.add(e);
@@ -304,6 +411,10 @@ public class Graph {
             }
         }
         return edges;
+    }
+
+    public List<Edge> getEdges(int u, int v){
+        return getEdges(new Node(u, this), new Node(v, this));
     }
 
     public List<Edge> getAllEdges(){
@@ -340,12 +451,40 @@ public class Graph {
     }
 
     public Graph getReverse(){
-        return null;
+        Graph reverse = new Graph();
+        for(Node n : adjEdList.keySet()){
+            reverse.addNode(n);
+            for(Edge e : adjEdList.get(n)){
+                reverse.addEdge(e.getSymmetric());
+            }
+        }
+        return reverse;
     }
 
     public Graph getTransitiveClosure(){
-        return null;
+        Graph transitiveClosure = new Graph();
+        for(Node n : adjEdList.keySet()){
+            transitiveClosure.addNode(n);
+            List<Node> reachable = getReachable(n, new ArrayList<>());
+            reachable.remove(0);
+            for(Node r : reachable){
+                transitiveClosure.addEdge(n, r);
+            }
+        }
+        return transitiveClosure;
     }
+
+    private List<Node> getReachable(Node n, List<Node> reachable){
+        if(!reachable.contains(n)){
+            reachable.add(n);
+            for(Node s : getSuccessors(n)){
+                getReachable(s, reachable);
+            }
+        }
+        return reachable;
+
+    }
+
 
     public boolean isMultiGraph(){
         for(Node n : adjEdList.keySet()){

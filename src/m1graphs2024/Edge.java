@@ -1,5 +1,7 @@
 package m1graphs2024;
 
+import java.util.Objects;
+
 public class Edge implements Comparable<Edge> {
 
     private Node from, to;
@@ -8,6 +10,10 @@ public class Edge implements Comparable<Edge> {
 
     public Edge(Node from, Node to, Graph graph){
         this(from, to, graph, 0);
+    }
+
+    public Edge(int from, int to, Graph graph){
+        this(new Node(from, graph), new Node(to, graph), graph, null);
     }
 
     public Edge(Node from, Node to, Graph graph, Integer weight){
@@ -22,13 +28,13 @@ public class Edge implements Comparable<Edge> {
     }
 
     public int hashCode() {
-        return 0;
+        return from.hashCode() + to.hashCode();
     }
 
     public boolean equals(Object obj) {
         if(obj instanceof Edge){
             Edge e = (Edge) obj;
-            return e.from.equals(this.from) && e.to.equals(this.to);
+            return e.from.equals(this.from) && e.to.equals(this.to) && Objects.equals(e.weight, this.weight);
         }
         return false;
     }
@@ -44,7 +50,7 @@ public class Edge implements Comparable<Edge> {
 
     @Override
     public String toString() {
-        return from+" -> "+to;
+        return from+"->"+to;
     }
 
     public Node from(){
@@ -63,11 +69,15 @@ public class Edge implements Comparable<Edge> {
         return from.equals(to);
     }
 
-    public boolean isWeighted(){
-        return weight == null;
+    public boolean isMultiEdge(){
+        return graph.getEdges(from, to).size() > 1;
     }
 
-    public int getWeight(){
+    public boolean isWeighted(){
+        return Objects.nonNull(weight);
+    }
+
+    public Integer getWeight(){
         return weight;
     }
 }

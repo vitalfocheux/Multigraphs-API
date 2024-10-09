@@ -1,5 +1,8 @@
 package m1graphs2024;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +14,7 @@ import m1graphs2024.UndirectedGraph;
 
 public class TestGraphsPW2 {
 
-	public static void main(String[] args) {
+	 public static void test(){
 		System.out.println("************ PART 1. UNWEIGTED DIRECTED GRAPHS ***********************");
 		System.out.println("\n>>>>>>>> SIMPLE GRAPH >>>>>>>>>>>>>>>>>>>>>>>>");
 		System.out.println(">>>>>>>> Creating the subject example graph in G");
@@ -158,6 +161,7 @@ public class TestGraphsPW2 {
 		System.out.println(g.getReverse().toDotString());
 
 		System.out.println(">>>>>>>>>>    Get the transitive closure");
+		//System.out.println(g.toDotString());
 		System.out.println(g.getTransitiveClosure().toDotString());
 
 		System.out.println(">>>>>>>>>>    Emptying the graph by removing all its nodes");
@@ -386,6 +390,16 @@ public class TestGraphsPW2 {
 		}
 
 
+	}
+
+	public static void main(String[] args) {
+		try{
+			PrintStream file = new PrintStream(new FileOutputStream("src/m1graphs2024/output.txt"));
+			System.setOut(file);
+			test();
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 }
