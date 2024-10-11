@@ -27,7 +27,8 @@ public class UndirectedGraph extends Graph{
                     adjEdList.put(new Node(n, this), new ArrayList<>());
                 }
                 adjEdList.get(new Node(i, this)).add(new Edge(new Node(i, this), new Node(n, this), this, null));
-                adjEdList.get(new Node(n, this)).add(new Edge(new Node(n, this), new Node(i, this), this, null));
+                //TODO revoir toutes les methodes qui utilise les Edges
+                //adjEdList.get(new Node(n, this)).add(new Edge(new Node(n, this), new Node(i, this), this, null));
             }
         }
 
@@ -43,11 +44,42 @@ public class UndirectedGraph extends Graph{
         return removeNode(new Node(id, this));
     }
 
+    public List<Node> getSuccessors(Node n){
+        List<Node> successors = new ArrayList<>();
+        if(!holdsNode(n)){
+            return successors;
+        }
+        /*
+        List<Edge> edges = adjEdList.get(n);
+        for(Edge e : edges){
+            if(!successors.contains(e.to())) {
+                successors.add(e.to());
+            }
+        }*/
+        List<Edge> edges = getAllEdges();
+        for(Edge e : edges){
+            if(e.from().equals(n) && !successors.contains(e.to())){
+                successors.add(e.to());
+            }else if(e.to().equals(n) && !successors.contains(e.from())){
+                successors.add(e.from());
+            }
+        }
+        return successors;
+    }
+
     public int degree(Node n){
         if(!holdsNode(n)){
             return 0;
         }
-        return adjEdList.get(n).size();
+        int res = adjEdList.get(n).size();
+        System.err.println(res);
+        List<Edge> edges = getAllEdges();
+        for(Edge e : edges){
+            if(e.to().equals(n)){
+                res++;
+            }
+        }
+        return res;
     }
 
     public int degree(int id){
@@ -71,7 +103,7 @@ public class UndirectedGraph extends Graph{
     }
 
     public int nbEdges(){
-        return adjEdList.values().stream().mapToInt(List::size).sum() / 2;
+        return adjEdList.values().stream().mapToInt(List::size).sum();
     }
 
     public boolean existsEdge(Node u, Node v){
@@ -115,6 +147,23 @@ public class UndirectedGraph extends Graph{
 
     public boolean removeEdge(int from, int to){
         return removeEdge(new Node(from, this), new Node(to, this));
+    }
+
+    public List<Edge> getOutEdges(Node n){
+        List<Edge> outEdges = new ArrayList<>();
+        List<Edge> edges = getAllEdges();
+        for(Edge e : edges){
+            if(e.from().equals(n)){
+                outEdges.add(e);
+            }else if(e.to().equals(n)){
+                outEdges.add(new Edge(e.to(), e.from(), this, e.getWeight()));
+            }
+        }
+        return outEdges;
+    }
+
+    public List<Edge> getOutEdges(int id){
+        return getOutEdges(new Node(id, this));
     }
 
     public List<Edge> getInEdges(Node n){

@@ -222,16 +222,16 @@ public class Graph {
     }
 
     public int largestNodeId(){
-        return adjEdList.keySet().stream().mapToInt(Node::getId).max().orElse(-1);
+        return adjEdList.keySet().stream().mapToInt(Node::getId).max().orElse(0);
     }
 
     public int smallestNodeId(){
-        return adjEdList.keySet().stream().mapToInt(Node::getId).min().orElse(-1);
+        return adjEdList.keySet().stream().mapToInt(Node::getId).min().orElse(0);
     }
 
     public List<Node> getSuccessors(Node n){
         List<Node> successors = new ArrayList<>();
-        if(!holdsNode(n)){
+        if(!holdsNode(n)) {
             return successors;
         }
         List<Edge> edges = adjEdList.get(n);
