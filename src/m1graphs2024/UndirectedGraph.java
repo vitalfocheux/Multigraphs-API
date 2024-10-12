@@ -44,18 +44,21 @@ public class UndirectedGraph extends Graph{
         return removeNode(new Node(id, this));
     }
 
-    public List<Node> getSuccessors(Node n){
-        List<Node> successors = new ArrayList<>();
-        if(!holdsNode(n)){
-            return successors;
-        }
-        /*
-        List<Edge> edges = adjEdList.get(n);
-        for(Edge e : edges){
-            if(!successors.contains(e.to())) {
-                successors.add(e.to());
+    public List<Node> getAllNodes(){
+        List<Node> nodes = new ArrayList<>();
+        adjEdList.keySet().forEach(node -> {
+            if(usesNode(node)){
+                nodes.add(node);
             }
-        }*/
+        });
+        return nodes;
+    }
+
+    public List<Node> getSuccessors(Node n){
+        if(!holdsNode(n)){
+            return new ArrayList<>();
+        }
+        List<Node> successors = new ArrayList<>();
         List<Edge> edges = getAllEdges();
         for(Edge e : edges){
             if(e.from().equals(n) && !successors.contains(e.to())){
@@ -67,12 +70,35 @@ public class UndirectedGraph extends Graph{
         return successors;
     }
 
+    public List<Node> getSuccessors(int id){
+        return getSuccessors(new Node(id, this));
+    }
+
+    public List<Node> getSuccessorsMulti(Node n){
+        if(!holdsNode(n)){
+            return new ArrayList<>();
+        }
+        List<Node> successors = new ArrayList<>();
+        List<Edge> edges = getAllEdges();
+        for(Edge e : edges){
+            if(e.from().equals(n)){
+                successors.add(e.to());
+            }else if(e.to().equals(n)){
+                successors.add(e.from());
+            }
+        }
+        return successors;
+    }
+
+    public List<Node> getSuccesorsMulti(int id){
+        return getSuccessorsMulti(new Node(id, this));
+    }
+
     public int degree(Node n){
         if(!holdsNode(n)){
             return 0;
         }
         int res = adjEdList.get(n).size();
-        System.err.println(res);
         List<Edge> edges = getAllEdges();
         for(Edge e : edges){
             if(e.to().equals(n)){
@@ -124,8 +150,8 @@ public class UndirectedGraph extends Graph{
         if(!holdsNode(to)){
             addNode(to);
         }
-        adjEdList.get(from).add(new Edge(from, to, this));
-        adjEdList.get(to).add(new Edge(to, from, this));
+        adjEdList.get(from).add(new Edge(from, to, this, null));
+        //adjEdList.get(to).add(new Edge(to, from, this, null));
         Collections.sort(adjEdList.get(from));
     }
 
@@ -205,20 +231,48 @@ public class UndirectedGraph extends Graph{
         return edges;
     }
 
+    public int[][] toAdjMatrix(){
+        int[][] adjMatrix = new int[nbNodes()][nbNodes()];
+        for(Node n : adjEdList.keySet()){
+            for(Edge e : adjEdList.get(n)){
+                adjMatrix[e.from().getId() - 1][e.to().getId() - 1] += 1;
+                Edge sym = e.getSymmetric();
+                if(!existsEdge(sym)){
+                    adjMatrix[sym.from().getId() - 1][sym.to().getId() - 1] += 1;
+                }
+            }
+        }
+        return adjMatrix;
+    }
+
     public UndirectedGraph getReverse(){
         return copy();
     }
 
     public UndirectedGraph getTransitiveClosure(){
-        UndirectedGraph transitive = new UndirectedGraph();
+        UndirectedGraph transitiveClosure = new UndirectedGraph();
         for(Node n : adjEdList.keySet()){
-            transitive.addNode(n);
-            List<Node> reachable = getDFS(n);
+            transitiveClosure.addNode(n);
+            List<Node> reachable = getReachable(n, new ArrayList<>());
+            reachable.remove(0);
             for(Node r : reachable){
-                transitive.addEdge(n, r);
+                if(!transitiveClosure.existsEdge(n, r) && !transitiveClosure.existsEdge(r, n)){
+                    transitiveClosure.addEdge(n, r);
+                }
             }
         }
-        return transitive;
+        return transitiveClosure;
+    }
+
+    private List<Node> getReachable(Node n, List<Node> reachable){
+        if(!reachable.contains(n)){
+            reachable.add(n);
+            for(Node s : getSuccessors(n)){
+                getReachable(s, reachable);
+            }
+        }
+        return reachable;
+
     }
 
 
@@ -230,7 +284,7 @@ public class UndirectedGraph extends Graph{
         for(Node n : adjEdList.keySet()){
             simple.addNode(n);
             for(Edge e : adjEdList.get(n)){
-                if(!simple.existsEdge(e.from(), e.to()) && !e.isSelfLoop()){
+                if(!simple.existsEdge(e.from(), e.to())){
                     simple.addEdge(e);
                 }
             }
@@ -260,7 +314,7 @@ public class UndirectedGraph extends Graph{
     public String toDotString(){
         String res = "graph {\n\trankdir=LR\n";
         for(Node n : adjEdList.keySet()){
-            if(adjEdList.get(n).isEmpty() && !usesNode(n)){
+            if(adjEdList.get(n).isEmpty() && !holdsNode(n)){
                 res += "\t"+n.getId()+"\n";
             }
             for(Edge e : adjEdList.get(n)){

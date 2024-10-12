@@ -47,7 +47,7 @@ public class Graph {
                     if(!adjEdList.containsKey(from)){
                         adjEdList.put(from, new ArrayList<>());
                     }
-                    adjEdList.get(from).add(new Edge(from, to, this));
+                    adjEdList.get(from).add(new Edge(from, to, this, null));
                 }
             }
         }catch (IOException e){
@@ -314,19 +314,23 @@ public class Graph {
     }
 
     public boolean existsEdge(Node u, Node v){
-        if(!holdsNode(u) || !holdsNode(v)){
-            return false;
-        }
-        for(Edge e : adjEdList.get(u)){
-            if(e.to().equals(v)){
-                return true;
-            }
-        }
-        return false;
+        return existsEdge(new Edge(u, v, this, null));
     }
 
     public boolean existsEdge(int u, int v){
         return existsEdge(new Node(u, this), new Node(v, this));
+    }
+
+    public boolean existsEdge(Edge e){
+        if(!holdsNode(e.to()) || !holdsNode(e.from())){
+            return false;
+        }
+        for(Edge ed : adjEdList.get(e.from())){
+            if(e.equals(ed)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void addEdge(Node from, Node to){
@@ -386,10 +390,10 @@ public class Graph {
     }
 
     public List<Edge> getIncidentEdges(Node n){
-        List<Edge> edges = new ArrayList<>();
         if(!holdsNode(n)){
-            return edges;
+            return new ArrayList<>();
         }
+        List<Edge> edges = new ArrayList<>();
         edges.addAll(getInEdges(n));
         edges.addAll(getOutEdges(n));
         return edges;
@@ -442,9 +446,16 @@ public class Graph {
 
     public int[][] toAdjMatrix(){
         int[][] adjMatrix = new int[nbNodes()][nbNodes()];
+        System.err.println(toDotString());
         for(Node n : adjEdList.keySet()){
             for(Edge e : adjEdList.get(n)){
-                adjMatrix[n.getId()-1][e.to().getId()-1] = 1;
+                System.err.println(e);
+                adjMatrix[n.getId()-1][e.to().getId()-1] += 1;
+                /*System.err.println("symetric "+e.getSymmetric());
+                System.err.println(!e.isSelfLoop() +"&&"+ !existsEdge(e.getSymmetric()));
+                if(!e.isSelfLoop() && !existsEdge(e.getSymmetric())){
+                    adjMatrix[e.from().getId() -1][e.to().getId() - 1] += 1;
+                }*/
             }
         }
         return adjMatrix;
@@ -519,7 +530,7 @@ public class Graph {
         for(Node n : adjEdList.keySet()){
             simpleGraph.addNode(n);
             for(Edge e : adjEdList.get(n)){
-                if(!simpleGraph.existsEdge(e.from(), e.to()) && !e.isSelfLoop()){
+                if(!simpleGraph.existsEdge(e.from(), e.to())){
                     simpleGraph.addEdge(e);
                 }
             }
@@ -562,7 +573,7 @@ public class Graph {
         }
         if(dfs.size() < nbNodes()){
             for(Node node : adjEdList.keySet()){
-                if(!dfs.contains(node)){
+                if(!dfs.contains(node) && usesNode(node)){
                     getDFS(node, dfs);
                 }
             }
@@ -600,7 +611,7 @@ public class Graph {
         }
         if(bfs.size() < nbNodes()){
             for(Node node : adjEdList.keySet()){
-                if(!bfs.contains(node)){
+                if(!bfs.contains(node) && usesNode(node)){
                     getDFS(node, bfs);
                 }
             }
