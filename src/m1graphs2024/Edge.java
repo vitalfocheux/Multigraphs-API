@@ -9,7 +9,7 @@ public class Edge implements Comparable<Edge> {
     private Integer weight;
 
     public Edge(Node from, Node to, Graph graph){
-        this(from, to, graph, 0);
+        this(from, to, graph, null);
     }
 
     public Edge(int from, int to, Graph graph){

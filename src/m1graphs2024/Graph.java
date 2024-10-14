@@ -33,45 +33,6 @@ public class Graph {
         }
     }
 
-    //TODO Faire un constructeur qui lit un fichier .dot
-    public Graph(String dotFile) {
-        adjEdList = new HashMap<>();
-
-        try(BufferedReader br = new BufferedReader(new FileReader(dotFile))){
-            String line;
-            while((line = br.readLine()) != null){
-                if(line.contains("->")){
-                    String[] nodes = line.split("->");
-                    Node from = new Node(Integer.parseInt(nodes[0].trim()), this);
-                    Node to = new Node(Integer.parseInt(nodes[1].trim()), this);
-                    if(!adjEdList.containsKey(from)){
-                        adjEdList.put(from, new ArrayList<>());
-                    }
-                    adjEdList.get(from).add(new Edge(from, to, this, null));
-                }
-            }
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public String toString() {
-        String res = "";
-        for(Node n : adjEdList.keySet()){
-            res += n.getId() + " -> ";
-            int size = adjEdList.get(n).size();
-            for(int i = 0; i < size; i++){
-                res += "("+n.getId()+", "+adjEdList.get(n).get(i).to().getId()+")";
-                if(i < size - 1){
-                    res += ", ";
-                }
-            }
-            res += "\n";
-        }
-        return res;
-    }
-
     public static Graph fromDotFile(String filename){
         return Graph.fromDotFile(filename, "gv");
     }
@@ -200,7 +161,6 @@ public class Graph {
         return addNode(new Node(id, this));
     }
 
-    //TODO faire le removeNode
     public boolean removeNode(Node n){
         if(!holdsNode(n)){
             return false;
@@ -423,9 +383,7 @@ public class Graph {
 
     public List<Edge> getAllEdges(){
         List<Edge> edges = new ArrayList<>();
-        for(Node n : adjEdList.keySet()){
-            edges.addAll(adjEdList.get(n));
-        }
+        adjEdList.values().forEach(edges::addAll);
         return edges;
     }
 
@@ -446,16 +404,9 @@ public class Graph {
 
     public int[][] toAdjMatrix(){
         int[][] adjMatrix = new int[nbNodes()][nbNodes()];
-        System.err.println(toDotString());
         for(Node n : adjEdList.keySet()){
             for(Edge e : adjEdList.get(n)){
-                System.err.println(e);
                 adjMatrix[n.getId()-1][e.to().getId()-1] += 1;
-                /*System.err.println("symetric "+e.getSymmetric());
-                System.err.println(!e.isSelfLoop() +"&&"+ !existsEdge(e.getSymmetric()));
-                if(!e.isSelfLoop() && !existsEdge(e.getSymmetric())){
-                    adjMatrix[e.from().getId() -1][e.to().getId() - 1] += 1;
-                }*/
             }
         }
         return adjMatrix;
@@ -557,7 +508,15 @@ public class Graph {
 
     public List<Node> getDFS(Node n) {
         List<Node> dfs = new ArrayList<>();
-        return getDFS(n, dfs);
+        getDFS(n, dfs);
+        if(dfs.size() < nbNodes()){
+            for(Node node : adjEdList.keySet()){
+                if(!dfs.contains(node) && usesNode(node)){
+                    getDFS(node, dfs);
+                }
+            }
+        }
+        return dfs;
     }
 
     public List<Node> getDFS(int id){
@@ -571,13 +530,7 @@ public class Graph {
                 getDFS(s, dfs);
             }
         }
-        if(dfs.size() < nbNodes()){
-            for(Node node : adjEdList.keySet()){
-                if(!dfs.contains(node) && usesNode(node)){
-                    getDFS(node, dfs);
-                }
-            }
-        }
+
         return dfs;
     }
 
