@@ -33,5 +33,17 @@ public class NodeVisitInfo {
         this.colour = colour;
     }
 
+    public void setPredeccessor(Node predeccessor){
+        this.predeccessor = predeccessor;
+    }
+
+    public void setDiscovery(int discovery){
+        this.discovery = discovery;
+    }
+
+    public void setFinished(int finished){
+        this.finished = finished;
+    }
+
 
 }
