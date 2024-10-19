@@ -573,8 +573,7 @@ public class Graph {
     }
 
     public List<Node> getDFSWithVisitInfo(Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
-        Node start = new Node(smallestNodeId(), this);
-        return getDFSWithVisitInfo(start, nodeVisit, edgeVisit);
+        return getDFSWithVisitInfo(new Node(smallestNodeId(), this), nodeVisit, edgeVisit);
     }
 
     public List<Node> getDFSWithVisitInfo(Node n, Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit){
@@ -582,7 +581,7 @@ public class Graph {
         for(Node node : adjEdList.keySet()){
             nodeVisit.put(node, new NodeVisitInfo());
         }
-        int time = 0;
+        MutableInteger time = new MutableInteger(0);
         getDFSWithVisitInfoRec(n, nodeVisit, edgeVisit, dfs, time);
         if(dfs.size() < nbNodes()){
             for(Node node : adjEdList.keySet()){
@@ -596,20 +595,50 @@ public class Graph {
     }
 
     //TODO: Regarder pour les edgeVisit
-    private List<Node> getDFSWithVisitInfoRec(Node n, Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit, List<Node> dfs, int time){
-        time++;
-        nodeVisit.get(n).setDiscovery(time);
+    private void getDFSWithVisitInfoRec(Node n, Map<Node, NodeVisitInfo> nodeVisit, Map<Edge, EdgeVisitType> edgeVisit, List<Node> dfs, MutableInteger time){
+        time.increment();
+        nodeVisit.get(n).setDiscovery(time.getValue());
         dfs.add(n);
-        nodeVisit.get(n).setColour(NodeColour.GREY);
+        nodeVisit.get(n).setColour(NodeColour.GRAY);
+
         for(Node s : getSuccessors(n)){
             if(nodeVisit.get(s).getColour() == NodeColour.WHITE){
                 nodeVisit.get(s).setPredeccessor(n);
+                edgeVisit.put(new Edge(n, s, this), EdgeVisitType.TREE);
                 getDFSWithVisitInfoRec(s, nodeVisit, edgeVisit, dfs, time);
             }
         }
+        for(Node s : getSuccessors(n)){
+            if(nodeVisit.get(s).getPredeccessor() != n){
+                if(nodeVisit.get(s).getColour() == NodeColour.BLACK){
+                    Set<Node> pr1 = new HashSet<>();
+                    Set<Node> pr2 = new HashSet<>();
+                    getAllPredecessor(pr1, nodeVisit, n);
+                    getAllPredecessor(pr2, nodeVisit, s);
+                    pr1.retainAll(pr2);
+                    if(pr1.isEmpty()) {
+                        edgeVisit.put(new Edge(n, s, this), EdgeVisitType.FORWARD);
+                    }else{
+                        edgeVisit.put(new Edge(n, s, this), EdgeVisitType.CROSS);
+                    }
+                    //System.err.println(n+" "+s);
+                    //edgeVisit.put(new Edge(n, s, this), EdgeVisitType.FORWARD);
+                }else if(nodeVisit.get(s).getColour() == NodeColour.GRAY){
+                    edgeVisit.put(new Edge(n, s, this), EdgeVisitType.BACKWARD);
+                }
+            }
+        }
         nodeVisit.get(n).setColour(NodeColour.BLACK);
-        time++;
-        nodeVisit.get(n).setFinished(time);
-        return dfs;
+        time.increment();
+        nodeVisit.get(n).setFinished(time.getValue());
+
+        //return dfs;
+    }
+
+    private void getAllPredecessor(Set<Node> predecessor, Map<Node, NodeVisitInfo> nodeVisit, Node n){
+        if(nodeVisit.get(n).getPredeccessor() != null){
+            predecessor.add(nodeVisit.get(n).getPredeccessor());
+            getAllPredecessor(predecessor, nodeVisit, nodeVisit.get(n).getPredeccessor());
+        }
     }
 }
