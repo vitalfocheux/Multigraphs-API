@@ -45,5 +45,15 @@ public class NodeVisitInfo {
         this.finished = finished;
     }
 
+    @Override
+    public String toString(){
+        return "NodeVisitInfo{" +
+                "predeccessor=" + predeccessor +
+                ", colour=" + colour +
+                ", discovery=" + discovery +
+                ", finished=" + finished +
+                '}';
+    }
+
 
 }
