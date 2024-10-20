@@ -9,12 +9,22 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Represents an undirected graph.
+ */
 public class UndirectedGraph extends Graph{
 
+    /**
+     * Constructs an empty undirected graph.
+     */
     public UndirectedGraph(){
         super();
     }
 
+    /**
+     * Constructs an undirected graph with the specified nodes
+     * @param nodes the nodes of the undirected graph
+     */
     public UndirectedGraph(int... nodes){
         adjEdList = new HashMap<>();
         int i = 1;
@@ -37,6 +47,10 @@ public class UndirectedGraph extends Graph{
 
     }
 
+    /**
+     * Returns all nodes in the graph.
+     * @return a list of all nodes in the graph
+     */
     public List<Node> getAllNodes(){
         List<Node> nodes = new ArrayList<>();
         adjEdList.keySet().forEach(node -> {
@@ -47,6 +61,11 @@ public class UndirectedGraph extends Graph{
         return nodes;
     }
 
+    /**
+     * Returns the successors of the specified node
+     * @param n the node whose successors are to be returned
+     * @return the list of successors node
+     */
     public List<Node> getSuccessors(Node n){
         if(!holdsNode(n)){
             return new ArrayList<>();
@@ -63,10 +82,20 @@ public class UndirectedGraph extends Graph{
         return successors;
     }
 
+    /**
+     * Returns the successors of the node with the specified ID
+     * @param id the ID of the node whose successors are to be returned
+     * @return the list of successors node
+     */
     public List<Node> getSuccessors(int id){
         return getSuccessors(new Node(id, this));
     }
 
+    /**
+     * Returns the successors of the specified node in a undirected multigraph
+     * @param n the node whose successors are to be returned
+     * @return the list of successors node in an undirected multigraph
+     */
     public List<Node> getSuccessorsMulti(Node n){
         if(!holdsNode(n)){
             return new ArrayList<>();
@@ -83,44 +112,74 @@ public class UndirectedGraph extends Graph{
         return successors;
     }
 
+    /**
+     * Returns the successors of the node with the specified ID in a undirected multigraph
+     * @param id the ID of the node whose successors are to be returned
+     * @return the list of successors node in an undirected multigraph
+     */
     public List<Node> getSuccesorsMulti(int id){
         return getSuccessorsMulti(new Node(id, this));
     }
 
+    /**
+     * Returns the degree of the specified node
+     * @param n the node whose degree is to be returned
+     * @return the degree of the node
+     */
     public int degree(Node n){
-        if(!holdsNode(n)){
-            return 0;
-        }
-        int res = adjEdList.get(n).size();
-        List<Edge> edges = getAllEdges();
-        for(Edge e : edges){
-            if(e.to().equals(n)){
-                res++;
-            }
-        }
-        return res;
+        return super.inDegree(n) + super.outDegree(n);
     }
 
+    /**
+     * Returns the degree of the node with the specified ID
+     * @param id the ID of the node whose degree is to be returned
+     * @return the degree of the node
+     */
     public int degree(int id){
         return degree(new Node(id, this));
     }
 
+    /**
+     * Returns the out-degree of the specified node
+     * @param n the node whose out-degree is to be returned
+     * @return the out-degree of the node
+     */
     public int outDegree(Node n){
         return degree(n);
     }
 
+    /**
+     * Returns the out-degree of the node with the specified ID
+     * @param id the ID of the node whose out-degree is to be returned
+     * @return the out-degree of the node
+     */
     public int outDegree(int id){
         return degree(new Node(id, this));
     }
 
+    /**
+     * Returns the in-degree of the specified node
+     * @param n the node whose in-degree is to be returned
+     * @return the in-degree of the node
+     */
     public int inDegree(Node n){
         return degree(n);
     }
 
+    /**
+     * Returns the in-degree of the node with the specified ID
+     * @param id the ID of the node whose in-degree is to be returned
+     * @return the in-degree of the node
+     */
     public int inDegree(int id){
         return degree(new Node(id, this));
     }
 
+    /**
+     * Returns the outgoing edges of the specified node
+     * @param n the node whose outgoing edges are to be returned
+     * @return the list of outgoing edges
+     */
     public List<Edge> getOutEdges(Node n){
         List<Edge> outEdges = new ArrayList<>();
         List<Edge> edges = getAllEdges();
@@ -134,26 +193,57 @@ public class UndirectedGraph extends Graph{
         return outEdges;
     }
 
+    /**
+     * Returns the outgoing edges of the node with the specified ID
+     * @param id the ID of the node whose outgoing edges are to be returned
+     * @return the list of outgoing edges
+     */
     public List<Edge> getOutEdges(int id){
         return getOutEdges(new Node(id, this));
     }
 
+    /**
+     * Returns the incoming edges of the specified node
+     * @param n the node whose incoming edges are to be returned
+     * @return the list of incoming edges
+     */
     public List<Edge> getInEdges(Node n){
         return getOutEdges(n);
     }
 
+    /**
+     * Returns the incoming edges of the node with the specified ID
+     * @param id the ID of the node whose incoming edges are to be returned
+     * @return the list of incoming edges
+     */
     public List<Edge> getInEdges(int id){
         return getOutEdges(new Node(id, this));
     }
 
+    /**
+     * Returns the incident edges of the specified node
+     * @param n the node whose incident edges are to be returned
+     * @return the list of incident edges
+     */
     public List<Edge> getIncidentEdges(Node n){
         return getOutEdges(n);
     }
 
+    /**
+     * Returns the incident edges of the node with the specified ID
+     * @param id the ID of the node whose incident edges are to be returned
+     * @return the list of incident edges
+     */
     public List<Edge> getIncidentEdges(int id){
         return getOutEdges(new Node(id, this));
     }
 
+    /**
+     * Returns the edge between the specified nodes
+     * @param u the first node
+     * @param v the second node
+     * @return the list of edges between the two nodes
+     */
     public List<Edge> getEdges(Node u, Node v){
         if(!holdsNode(u) || !holdsNode(v)){
             return new ArrayList<>();
@@ -167,10 +257,20 @@ public class UndirectedGraph extends Graph{
         return edges;
     }
 
+    /**
+     * Returns the edge between the nodes with the specified IDs
+     * @param u the ID of the first node
+     * @param v the ID of the second node
+     * @return the list of edges between the two nodes
+     */
     public List<Edge> getEdges(int u, int v){
         return getEdges(new Node(u, this), new Node(v, this));
     }
 
+    /**
+     * Returns the adjacency matrix of the graph
+     * @return the adjacency matrix of the graph
+     */
     public int[][] toAdjMatrix(){
         int[][] adjMatrix = new int[nbNodes()][nbNodes()];
         for(Node n : adjEdList.keySet()){
@@ -185,10 +285,18 @@ public class UndirectedGraph extends Graph{
         return adjMatrix;
     }
 
+    /**
+     * Returns the reverse of the graph
+     * @return the reverse of the graph
+     */
     public UndirectedGraph getReverse(){
         return copy();
     }
 
+    /**
+     * Returns the transitive closure of the graph
+     * @return the transitive closure of the graph
+     */
     public UndirectedGraph getTransitiveClosure(){
         UndirectedGraph transitiveClosure = new UndirectedGraph();
         for(Node n : adjEdList.keySet()){
@@ -204,6 +312,12 @@ public class UndirectedGraph extends Graph{
         return transitiveClosure;
     }
 
+    /**
+     * Returns the reachable nodes from the specified node
+     * @param n the node from which the reachable nodes are to be returned
+     * @param reachable the list of reachable nodes
+     * @return the list of reachable nodes
+     */
     private List<Node> getReachable(Node n, List<Node> reachable){
         if(!reachable.contains(n)){
             reachable.add(n);
@@ -215,7 +329,10 @@ public class UndirectedGraph extends Graph{
 
     }
 
-
+    /**
+     * Returns a simple graph without multi-edges and self-loops
+     * @return a simple graph
+     */
     public UndirectedGraph toSimpleGraph(){
         if(!isMultiGraph() && !hasSelfLoops()){
             return this;
@@ -232,6 +349,10 @@ public class UndirectedGraph extends Graph{
         return simple;
     }
 
+    /**
+     * Returns a copy of the graph
+     * @return a copy of the graph
+     */
     public UndirectedGraph copy(){
         UndirectedGraph copy = new UndirectedGraph();
         for(Node n : adjEdList.keySet()){
@@ -243,10 +364,21 @@ public class UndirectedGraph extends Graph{
         return copy;
     }
 
+    /**
+     * Creates an undirected graph from a DOT file
+     * @param filename the name of the DOT file
+     * @return the undirected graph created from the DOT file
+     */
     public static UndirectedGraph fromDotFile(String filename){
         return fromDotFile(filename, "gv");
     }
 
+    /**
+     * Creates an undirected graph from a DOT file with the specified extension
+     * @param filename the name of the DOT file
+     * @param extension the extension of the DOT file
+     * @return the undirected graph created from the DOT file
+     */
     public static UndirectedGraph fromDotFile(String filename, String extension){
 
         UndirectedGraph g = new UndirectedGraph();
@@ -305,6 +437,10 @@ public class UndirectedGraph extends Graph{
         return g;
     }
 
+    /**
+     * Returns the DOT representation of the graph
+     * @return the DOT representation of the graph
+     */
     public String toDotString(){
         String res = "graph {\n\trankdir=LR\n";
         for(Node n : adjEdList.keySet()){
